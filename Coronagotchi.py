@@ -1,15 +1,34 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+import sys
+import os
+
+# This assumes you already have the Waveshare EPD running and the libraries installed
+picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'pic')
+libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib')
+if os.path.exists(libdir):
+    sys.path.append(libdir)
+
+import logging
+from waveshare_epd import epd2in13bc
+import time
+from PIL import Image,ImageDraw,ImageFont
+import traceback
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
- 
+
+logging.basicConfig(level=logging.DEBUG)
+
 # Source:       https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data
 # Confirmed:    https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv
 # Dead:         https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv
 # Recovered:    https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv
 
-file_confirmed = r'covid19-confirmed.csv'
-file_deaths = r'covid19-deaths.csv'
-file_recovered = r'covid19-recovered.csv'
+file_confirmed = r'confirmed.csv'
+file_deaths = r'deaths.csv'
+file_recovered = r'recovered.csv'
 # TODO: Cron job to pull the latest files each day
 
 ##
@@ -107,23 +126,79 @@ cvd_today = int(round(cvd_sums.iloc[6]))
 ##
 
 infected_diff = cv_today - cv_1ago
+# Uncomment to check data is being pulled properly
+#print("\n\n\nAustralia Breakdown")
+#print("-------------------")
+#print(cvc_df_au)
 
-print("\n\n\nAustralia Breakdown")
-print("-------------------")
-print(cvc_df_au)
-
-print("\n\n")
-
-# TODO: Output this block to the E-Ink display:
-print(f"{cv_today} infected so far. (+{infected_diff})")
-print(f"{cvr_today} have recovered.")
-print(f"\n{cvd_today} Australians have died.\n\n")
+output1 = str(cv_today) + " infected so far. (+" + str(infected_diff) + ")"
+output2 = str(cvr_today) + " have recovered."
+output3 = str(cvd_today) + " Australians have died."
 
 # Graph the trend and save as image file
 plt.plot(cv_sums, label="Infected", color="black")
 plt.plot(cvr_sums, label="Recovered", color="green")
 plt.plot(cvd_sums, label="Deaths", color="red")
 plt.legend()
-plt.show()
-#plt.savefig('graph.png') 
-# TODO: Convert PNG to 3-colour BMP for E-Ink display
+#plt.show()
+plt.savefig('graph.png')
+# TODO: Convert PNG to BMP for epd to display
+
+##
+# E-Paper Display
+##
+
+try:
+    logging.info("loading coronagotchi")
+    
+    epd = epd2in13bc.EPD()
+    logging.info("initialising and clearing display")
+    epd.init()
+    epd.Clear()
+    time.sleep(1)
+    
+    # Drawing on the image
+    logging.info("loading fonts")    
+    font20 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 20)
+    font16 = ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 16)
+    
+    # Drawing on the Horizontal image
+    logging.info("writing to display") 
+    HBlackimage = Image.new('1', (epd.height, epd.width), 255)  # 298*126
+    HRYimage = Image.new('1', (epd.height, epd.width), 255)  # 298*126  ryimage: red or yellow image  
+    drawblack = ImageDraw.Draw(HBlackimage)
+    drawry = ImageDraw.Draw(HRYimage)
+    drawblack.text((10, 10), output1, font = font16, fill = 0)
+    drawblack.text((10, 30), output2, font = font16, fill = 0)
+    drawblack.line((10, 60, 230, 60), fill = 0)
+    drawblack.text((10, 70), output3, font = font16, fill = 0)
+    epd.display(epd.getbuffer(HBlackimage), epd.getbuffer(HRYimage))
+    time.sleep(2)
+    
+    #logging.info("3.read bmp file")
+    #HBlackimage = Image.open(os.path.join(picdir, '2in13bc-b.bmp'))
+    #HRYimage = Image.open(os.path.join(picdir, '2in13bc-ry.bmp'))
+    #epd.display(epd.getbuffer(HBlackimage), epd.getbuffer(HRYimage))
+    #time.sleep(2)
+    
+    #logging.info("4.read bmp file on window")
+    #blackimage1 = Image.new('1', (epd.height, epd.width), 255)  # 298*126
+    #redimage1 = Image.new('1', (epd.height, epd.width), 255)  # 298*126    
+    #newimage = Image.open(os.path.join(picdir, '100x100.bmp'))
+    #blackimage1.paste(newimage, (10,10))    
+    #epd.display(epd.getbuffer(blackimage1), epd.getbuffer(redimage1))
+    
+    #logging.info("clearing display")
+    #epd.init()
+    #epd.Clear()
+    
+    logging.info("going to sleep")
+    epd.sleep()
+        
+except IOError as e:
+    logging.info(e)
+    
+except KeyboardInterrupt:    
+    logging.info("ctrl + c:")
+    epd2in13bc.epdconfig.module_exit()
+    exit()
