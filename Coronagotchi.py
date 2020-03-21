@@ -22,9 +22,6 @@ import matplotlib.pyplot as plt
 logging.basicConfig(level=logging.DEBUG)
 
 # Source:       https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data
-# Confirmed:    https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv
-# Dead:         https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv
-# Recovered:    https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv
 
 # Grab the latest CSV files
 os.system("wget https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv -O confirmed.csv")
