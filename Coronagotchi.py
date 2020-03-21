@@ -26,10 +26,15 @@ logging.basicConfig(level=logging.DEBUG)
 # Dead:         https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv
 # Recovered:    https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv
 
+# Grab the latest CSV files
+os.system("wget https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv -O confirmed.csv")
+os.system("wget https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv -O deaths.csv")
+os.system("wget https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv -O recovered.csv")
 file_confirmed = r'confirmed.csv'
 file_deaths = r'deaths.csv'
 file_recovered = r'recovered.csv'
-# TODO: Cron job to pull the latest files each day
+# TODO: Do this better, with error handling and naming them based on time/date download
+
 
 ##
 # INFECTED
@@ -63,6 +68,7 @@ cv_4ago = int(round(cv_sums.iloc[2]))
 cv_5ago = int(round(cv_sums.iloc[1]))
 cv_6ago = int(round(cv_sums.iloc[0]))
 
+
 ##
 # RECOVERED
 ##
@@ -94,6 +100,7 @@ cvr_3ago = int(round(cvr_sums.iloc[3]))
 cvr_4ago = int(round(cvr_sums.iloc[2]))
 cvr_5ago = int(round(cvr_sums.iloc[1]))
 cvr_6ago = int(round(cvr_sums.iloc[0]))
+
 
 ##
 # DEATHS
